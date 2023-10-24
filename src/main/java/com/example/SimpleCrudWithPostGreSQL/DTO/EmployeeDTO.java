@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -24,6 +25,6 @@ public class EmployeeDTO {
 
     private Department department;
 
-    private List<Integer> projectIds;
+    private Set<Long> projects;
 
 }

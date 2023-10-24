@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,8 +31,8 @@ public class Employee {
     private Department department;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name="course_id")
-    private Set<Project> projects;
+    @JoinColumn(name="project_id")
+    private Set<Project> projects = new HashSet<>();
 
 
 }

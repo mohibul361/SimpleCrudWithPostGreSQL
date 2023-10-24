@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService{
@@ -26,34 +23,31 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public ResponseEntity<String> saveEmployee(EmployeeDTO employeeDTO){
 
-        Optional<Employee> user = employeeRepository.findById(employeeDTO.getEmployeeId());
+        Employee employee = Employee.builder()
+                .firstName(employeeDTO.getFirstName())
+                .lastName(employeeDTO.getLastName())
+                .email(employeeDTO.getEmail())
+                .build();
 
-        List<Project> projectList = projectRepository.findAllByIdIn(employeeDTO.getProjectIds());
+        Set<Long> strProject = employeeDTO.getProjects();
 
-        if(projectList.size() > 0){
-            projectList = new ArrayList<>(projectList);
+        Set<Project> projects = new HashSet<>();
+
+
+        for(Long projectId : strProject){
+            Project project = projectRepository.findProjectById(projectId);
+
+            if(project != null){
+                projects.add(project);
+            }
+            else{
+                return ResponseEntity.badRequest().body("Project with id " + projectId + " not found.");
+            }
         }
 
-        if(user.isPresent()){
-            user.get().setFirstName(employeeDTO.getFirstName());
-            user.get().setLastName(employeeDTO.getLastName());
-            user.get().setEmail(employeeDTO.getEmail());
-            user.get().setDepartment(employeeDTO.getDepartment());
-            user.get().setProjects((Set<Project>) projectList);
-            employeeRepository.save(user.get());
-        }
-        else{
+        employee.setProjects(projects);
 
-            Employee employee = Employee.builder()
-                    .firstName(employeeDTO.getFirstName())
-                    .lastName(employeeDTO.getLastName())
-                    .email(employeeDTO.getEmail())
-                    .department(employeeDTO.getDepartment())
-                    .projects((Set<Project>) projectList)
-                    .build();
-
-            employeeRepository.save(employee);
-        }
+        employeeRepository.save(employee);
 
         return ResponseEntity.ok("Employee created successfully!");
     }
