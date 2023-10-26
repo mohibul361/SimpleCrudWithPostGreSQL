@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    @Query("SELECT p FROM Project p WHERE p.courseId = :courseId")
+    @Query("SELECT p FROM Project p WHERE p.projectId = :projectId")
     Project findProjectById(Long projectId);
 }
