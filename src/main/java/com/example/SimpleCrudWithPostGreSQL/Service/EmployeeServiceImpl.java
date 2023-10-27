@@ -10,12 +10,14 @@ import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.ResourceNotFoundExc
 import com.example.SimpleCrudWithPostGreSQL.Repository.EmployeeRepository;
 import com.example.SimpleCrudWithPostGreSQL.Repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -34,9 +36,9 @@ public class EmployeeServiceImpl implements EmployeeService{
             String email = employeeDTO.getEmail();
             Department department = employeeDTO.getDepartment();
 
-            if (firstName == null || lastName == null || email == null || department == null) {
-                return ResponseEntity.badRequest().body("The attribute values should not be null!");
-            } else {
+//            if (firstName == null || lastName == null || email == null || department == null) {
+//                return ResponseEntity.badRequest().body("The attribute values should not be null!");
+//            } else {
 
                 Employee employee = Employee.builder()
                         .firstName(firstName)
@@ -65,7 +67,7 @@ public class EmployeeServiceImpl implements EmployeeService{
                 employeeRepository.save(employee);
 
                 return ResponseEntity.ok("Employee created successfully!");
-            }
+//            }
 
         }
         catch(ResourceNotFoundException e){
@@ -111,38 +113,54 @@ public class EmployeeServiceImpl implements EmployeeService{
             return ResponseEntity.badRequest().body("Employee with this id " + employeeDTO.getEmployeeId() +" not found!");
         }
 
-        return ResponseEntity.ok("Student updated successfully!");
+        return ResponseEntity.ok("Employee updated successfully!");
     }
 
     @Override
-    public List<Employee> getAllEmployee (){
+    public List<EmployeeDTO> getAllEmployee() {
 
-        List<Employee> employeeList = employeeRepository.findAll();
+        List<Employee> employees = employeeRepository.findAll();
 
-        if(employeeList.isEmpty()){
-            log.info("No employee is found! Please registered employees!");
-
-            throw new EmployeeNotFoundException("No employees found! Please registered some employees!");
+        if (employees.isEmpty()) {
+            log.info("No employees found! Please register some employees.");
+            throw new EmployeeNotFoundException("No employees found! Please register some employees.");
         }
-        else{
-            return employeeList;
+
+        List<EmployeeDTO> employeeDTOList = new ArrayList<>();
+
+        for (Employee employee : employees) {
+            EmployeeDTO employeeDTO = new EmployeeDTO();
+            BeanUtils.copyProperties(employee, employeeDTO);
+
+            employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
+
+            employeeDTOList.add(employeeDTO);
         }
+
+        return employeeDTOList;
 
     }
+
+
     @Override
-    public Employee getASingleEmployee(Long employeeId){
+    public EmployeeDTO getASingleEmployee(Long employeeId) {
 
-            if(employeeId == null || employeeId <= 0){
-                throw new InvalidEmployeeException("Invalid employee ID. Please provide a valid id");
-            }
+        if (employeeId == null || employeeId <= 0 || employeeId.equals(0L)) {
+            throw new InvalidEmployeeException("Invalid employee ID. Please provide a valid ID.");
+        }
 
-            Optional<Employee> singleEmployee = employeeRepository.findById(employeeId);
+        Optional<Employee> singleEmployee = employeeRepository.findById(employeeId);
 
-            if(singleEmployee.isEmpty()){
-                throw new EmployeeNotFoundException("Employee with id " +employeeId+ " not found!");
-            }
+        if (singleEmployee.isEmpty()) {
+            throw new EmployeeNotFoundException("Employee with ID " + employeeId + " not found!");
+        }
 
-            return singleEmployee.get();
+        Employee employee = singleEmployee.get();
+
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        BeanUtils.copyProperties(employee, employeeDTO);
+
+        return employeeDTO;
     }
 
     @Override

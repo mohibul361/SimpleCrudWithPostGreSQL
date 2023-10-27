@@ -1,20 +1,15 @@
 package com.example.SimpleCrudWithPostGreSQL.Service;
 
-import com.example.SimpleCrudWithPostGreSQL.Controller.DepartmentController;
 import com.example.SimpleCrudWithPostGreSQL.DTO.DepartmentDTO;
 import com.example.SimpleCrudWithPostGreSQL.Entity.Department;
-import com.example.SimpleCrudWithPostGreSQL.Entity.Employee;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.EmployeeNotFoundException;
 import com.example.SimpleCrudWithPostGreSQL.Repository.DepartmentRepository;
-import com.example.SimpleCrudWithPostGreSQL.Repository.EmployeeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.Valid;
 import java.util.*;
 
 @Service
@@ -23,7 +18,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Autowired
     DepartmentRepository departmentRepository;
     @Override
-    public ResponseEntity<String> saveDepartment(DepartmentDTO departmentDTO){
+    public ResponseEntity<String> saveDepartment(@RequestBody DepartmentDTO departmentDTO){
 
 
         Department department = Department.builder()
@@ -33,6 +28,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         return ResponseEntity.ok("department added successfully!");
     }
+
     @Override
     public ResponseEntity<String> editDepartment(@RequestBody DepartmentDTO departmentDTO){
         Optional<Department> existingDepartment = departmentRepository.findById(departmentDTO.getDepartmentId());
