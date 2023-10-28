@@ -33,6 +33,8 @@ public class EmployeeDTO {
 
     private Department department;
 
-    private Set<Long> projects;
+    private Set<Long> projectIds;
+
+    private Set<ProjectDTO> projectDTOs;
 
 }
