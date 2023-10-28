@@ -3,8 +3,11 @@ package com.example.SimpleCrudWithPostGreSQL.ExceptionHandler;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,4 +22,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status((HttpStatus.NOT_FOUND))
                 .body("Resource Not Found Exception!" + ex.getMessage());
     }
+
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
+        String validationErrors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(validationErrors);
+    }
+
 }

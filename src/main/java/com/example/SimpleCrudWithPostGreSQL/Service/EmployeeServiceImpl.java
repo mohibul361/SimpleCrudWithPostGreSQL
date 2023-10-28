@@ -7,6 +7,7 @@ import com.example.SimpleCrudWithPostGreSQL.Entity.Employee;
 import com.example.SimpleCrudWithPostGreSQL.Entity.Project;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.EmployeeNotFoundException;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.InvalidEmployeeException;
+import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.MethodArgumentNotValidException;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.ResourceNotFoundException;
 import com.example.SimpleCrudWithPostGreSQL.Repository.DepartmentRepository;
 import com.example.SimpleCrudWithPostGreSQL.Repository.EmployeeRepository;
@@ -17,12 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Validated
 public class EmployeeServiceImpl implements EmployeeService{
     @Autowired
     EmployeeRepository employeeRepository;
@@ -74,6 +77,13 @@ public class EmployeeServiceImpl implements EmployeeService{
 //          }
 
         }
+
+        catch (MethodArgumentNotValidException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ex.getMessage());
+        }
+
+
         catch(ResourceNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
@@ -125,6 +135,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public List<EmployeeDTO> getAllEmployee() {
 
+
         List<Employee> employees = employeeRepository.findAll();
 
         if (employees.isEmpty()) {
@@ -138,32 +149,31 @@ public class EmployeeServiceImpl implements EmployeeService{
             EmployeeDTO employeeDTO = new EmployeeDTO();
             BeanUtils.copyProperties(employee, employeeDTO);
 
-            //employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
-            for(Project project: employee.getProjects())
-            {
+            Department department = employee.getDepartment();
+            employeeDTO.setDepartment(department);
+
+            Set<ProjectDTO> projectDTOs = new HashSet<>();
+            for (Project project : employee.getProjects()) {
                 ProjectDTO projectDTO = new ProjectDTO();
                 BeanUtils.copyProperties(project, projectDTO);
-                employeeDTO.getProjectDTOs().add(projectDTO);
+                projectDTOs.add(projectDTO);
             }
-            for(Project project: employee.getProjects())
-                {
-                    ProjectDTO projectDTO = new ProjectDTO();
-                    BeanUtils.copyProperties(project, projectDTO);
-                    employeeDTO.getProjectDTOs().add(projectDTO);
-                }
+            employeeDTO.setProjectDTOs(projectDTOs);
+
+            Set<Long> projectIds = employee.getProjects().stream()
+                    .map(Project::getProjectId)
+                    .collect(Collectors.toSet());
+            employeeDTO.setProjectIds(projectIds);
+
             employeeDTOList.add(employeeDTO);
         }
 
         return employeeDTOList;
-
-
     }
-
 
     @Override
     public EmployeeDTO getASingleEmployee(Long employeeId) {
-
-        if (employeeId == null || employeeId <= 0 || employeeId.equals(0L)) {
+        if (employeeId == null || employeeId <= 0) {
             throw new InvalidEmployeeException("Invalid employee ID. Please provide a valid ID.");
         }
 
@@ -177,6 +187,22 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         EmployeeDTO employeeDTO = new EmployeeDTO();
         BeanUtils.copyProperties(employee, employeeDTO);
+
+        Department department = employee.getDepartment();
+        employeeDTO.setDepartment(department);
+
+        Set<ProjectDTO> projectDTOs = new HashSet<>();
+        for (Project project : employee.getProjects()) {
+            ProjectDTO projectDTO = new ProjectDTO();
+            BeanUtils.copyProperties(project, projectDTO);
+            projectDTOs.add(projectDTO);
+        }
+        employeeDTO.setProjectDTOs(projectDTOs);
+
+        Set<Long> projectIds = employee.getProjects().stream()
+                .map(Project::getProjectId)
+                .collect(Collectors.toSet());
+        employeeDTO.setProjectIds(projectIds);
 
         return employeeDTO;
     }
