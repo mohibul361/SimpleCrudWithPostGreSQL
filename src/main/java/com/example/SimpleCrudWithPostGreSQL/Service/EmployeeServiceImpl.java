@@ -132,8 +132,13 @@ public class EmployeeServiceImpl implements EmployeeService{
             EmployeeDTO employeeDTO = new EmployeeDTO();
             BeanUtils.copyProperties(employee, employeeDTO);
 
-            employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
-
+            //employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
+            for(Project project: employee.getProjects)
+                {
+                    ProjectDTO projectDTO = new ProjectDTO();
+                    BeanUtils.copyProperties(project, projectDTO);
+                    employeeDTO.getProjectDTOs.add(projectDTO);
+                }
             employeeDTOList.add(employeeDTO);
         }
 
