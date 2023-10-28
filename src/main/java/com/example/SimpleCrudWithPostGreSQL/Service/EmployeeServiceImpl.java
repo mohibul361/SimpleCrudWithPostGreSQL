@@ -1,12 +1,14 @@
 package com.example.SimpleCrudWithPostGreSQL.Service;
 
 import com.example.SimpleCrudWithPostGreSQL.DTO.EmployeeDTO;
+import com.example.SimpleCrudWithPostGreSQL.DTO.ProjectDTO;
 import com.example.SimpleCrudWithPostGreSQL.Entity.Department;
 import com.example.SimpleCrudWithPostGreSQL.Entity.Employee;
 import com.example.SimpleCrudWithPostGreSQL.Entity.Project;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.EmployeeNotFoundException;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.InvalidEmployeeException;
 import com.example.SimpleCrudWithPostGreSQL.ExceptionHandler.ResourceNotFoundException;
+import com.example.SimpleCrudWithPostGreSQL.Repository.DepartmentRepository;
 import com.example.SimpleCrudWithPostGreSQL.Repository.EmployeeRepository;
 import com.example.SimpleCrudWithPostGreSQL.Repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ public class EmployeeServiceImpl implements EmployeeService{
     EmployeeRepository employeeRepository;
     @Autowired
     ProjectRepository projectRepository;
+    @Autowired
+    DepartmentRepository departmentRepository;
 
     @Override
     public ResponseEntity<String> saveEmployee( EmployeeDTO employeeDTO){
@@ -40,34 +44,34 @@ public class EmployeeServiceImpl implements EmployeeService{
 //                return ResponseEntity.badRequest().body("The attribute values should not be null!");
 //            } else {
 
-                Employee employee = Employee.builder()
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .email(email)
-                        .department(department)
-                        .build();
+            Employee employee = Employee.builder()
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .email(email)
+                    .department(department)
+                    .build();
 
-                Set<Long> strProject = employeeDTO.getProjects();
+            Set<Long> strProject = employeeDTO.getProjectIds();
 
-                Set<Project> projects = new HashSet<>();
+            Set<Project> projects = new HashSet<>();
 
 
-                for (Long projectId : strProject) {
-                    Project project = projectRepository.findProjectById(projectId);
+            for (Long projectId : strProject) {
+                Project project = projectRepository.findProjectById(projectId);
 
-                    if (project != null) {
-                        projects.add(project);
-                    } else {
-                        return ResponseEntity.badRequest().body("Project with id " + projectId + " not found.");
-                    }
+                if (project != null) {
+                    projects.add(project);
+                } else {
+                    return ResponseEntity.badRequest().body("Project with id " + projectId + " not found.");
                 }
+            }
 
-                employee.setProjects(projects);
+            employee.setProjects(projects);
 
-                employeeRepository.save(employee);
+            employeeRepository.save(employee);
 
-                return ResponseEntity.ok("Employee created successfully!");
-//            }
+            return ResponseEntity.ok("Employee created successfully!");
+//          }
 
         }
         catch(ResourceNotFoundException e){
@@ -78,6 +82,8 @@ public class EmployeeServiceImpl implements EmployeeService{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Can not created employee!");
         }
+
+
     }
 
     @Override
@@ -92,7 +98,7 @@ public class EmployeeServiceImpl implements EmployeeService{
             employee.get().setEmail(employeeDTO.getEmail());
             employee.get().setDepartment(employeeDTO.getDepartment());
 
-            Set<Long> strProject = employeeDTO.getProjects();
+            Set<Long> strProject = employeeDTO.getProjectIds();
 
             Set<Project> projects = new HashSet<>();
 
@@ -103,7 +109,7 @@ public class EmployeeServiceImpl implements EmployeeService{
                     projects.add(project);
                 }
                 else{
-                   return ResponseEntity.badRequest().body("Project with this " + projectId +  " is not found!");
+                    return ResponseEntity.badRequest().body("Project with this " + projectId +  " is not found!");
                 }
             }
 
@@ -132,12 +138,18 @@ public class EmployeeServiceImpl implements EmployeeService{
             EmployeeDTO employeeDTO = new EmployeeDTO();
             BeanUtils.copyProperties(employee, employeeDTO);
 
-            employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
-
+            //employeeDTO.setProjects(employee.getProjects().stream().map(Project::getProjectId).collect(Collectors.toSet()));
+            for(Project project: employee.getProjects())
+            {
+                ProjectDTO projectDTO = new ProjectDTO();
+                BeanUtils.copyProperties(project, projectDTO);
+                employeeDTO.getProjectDTOs().add(projectDTO);
+            }
             employeeDTOList.add(employeeDTO);
         }
 
         return employeeDTOList;
+
 
     }
 

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -33,6 +34,8 @@ public class EmployeeDTO {
 
     private Department department;
 
-    private Set<Long> projects;
+    private Set<Long> projectIds;
+
+    private Set<ProjectDTO> projectDTOs;
 
 }
